@@ -41,7 +41,7 @@ class Search(Resource):
             people = hit['_source']
             people['id'] = hit['_id']
             peoples.append(people)
-            
+
         return peoples
 
 @app.route('/')
@@ -55,10 +55,10 @@ def upload():
     form = AddFile()
 
     if form.validate_on_submit():
-        parsed = parser.from_buffer(form.file.data)
         file = form.file.data
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        parsed = parser.from_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
         try:
             parsed['metadata']['creator']

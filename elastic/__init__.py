@@ -10,7 +10,7 @@ from elasticsearch import Elasticsearch
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object('elastic.settings')
 app.config.from_pyfile('settings.conf')
-UPLOAD_FOLDER = sys.prefix
+UPLOAD_FOLDER = (app.instance_path + '/files/')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 CORS(app)
 api = Api(app)
