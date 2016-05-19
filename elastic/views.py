@@ -17,6 +17,13 @@ from .forms import AddFile, SearchForm
 import tika
 from tika import parser
 
+def types(extension):
+    allowed = ['pdf', 'text']
+    for endpoint in allowed:
+        if endpoint in extension:
+            return endpoint.upper()
+    raise KeyError('File not allowed')
+
 
 class Search(Resource):
  
@@ -25,7 +32,8 @@ class Search(Resource):
         query = {
             "query": {
                 "multi_match": {
-                    "fields": ["_id", "title", "body", "creator", "note", "file_type"],
+                    "fields": ["_id", "title", "body", "creator",
+                        "file_name", "note", "file_type"],
                     "query": field,
                     "type": "phrase_prefix",
                     "use_dis_max": False
@@ -55,26 +63,35 @@ def upload():
     form = AddFile()
 
     if form.validate_on_submit():
-        file = form.file.data
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        parsed = parser.from_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
         try:
-            parsed['metadata']['creator']
-        except KeyError:
-            parsed['metadata']['creator'] = None
+            file = form.file.data
+            filename = secure_filename(file.filename)
+            folder = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(folder)
+            parsed = parser.from_file(folder)
 
-        es.index(index='files', doc_type='doc', body={
-            "title": form.title.data,
-            "file_type": parsed["metadata"]["Content-Type"],
-            "creator": parsed["metadata"]["creator"],
-            "created": parsed["metadata"]["Creation-Date"],
-            "note": form.note.data,
-            "body": parsed["content"],
-        })
-        flash('Upload success')
-        return redirect(url_for('index'))
+            try:
+                parsed['metadata']['creator']
+            except KeyError:
+                parsed['metadata']['creator'] = None
+
+            if not Search().get(filename):
+                es.index(index='files', doc_type='doc', body={
+                    "title": form.title.data,
+                    "file_type": types(parsed["metadata"]["Content-Type"]),
+                    "creator": parsed["metadata"]["creator"],
+                    "created": parsed["metadata"]["Creation-Date"],
+                    "file_name": parsed["metadata"]["resourceName"],
+                    "note": form.note.data,
+                    "body": parsed["content"],
+                })
+            flash('Upload success')
+            return redirect(url_for('index'))
+
+        except KeyError as error:
+            os.remove(folder)
+            flash('File not allowed')
+            return redirect('/upload')
 
     return render_template('upload.html', form=form)
 
@@ -111,7 +128,9 @@ def show():
 
 @app.route('/delete', methods=['POST', 'GET'])
 def delete():
-    thing = request.form.get('id')
-    es.delete(index='files', doc_type='doc', id=thing)
+    file_id = request.form.get('id')
+    file = Search().get(file_id)
+    es.delete(index='files', doc_type='doc', id=file_id)
+    os.remove(os.path.join(app.config['UPLOAD_FOLDER'], file[0]['file_name']))
     flash('Delete success.')
     return redirect(url_for('index'))
