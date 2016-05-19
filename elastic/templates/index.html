@@ -18,7 +18,10 @@
       </ul>
     {% endif %}
 {% endwith %}
-      <h2><a href="{{ url_for('search') }}">SEARCH</a></h2>
+      <form action="" method="post">
+        {{ form.hidden_tag() }}
+        {{ form.field }} <input type="submit" value='Search'/>
+      </form>
       <h2><a href="{{ url_for('upload') }}">UPLOAD</a></h2>
     </body>
 </html>

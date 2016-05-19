@@ -53,10 +53,20 @@ class Search(Resource):
         return peoples
 
 @app.route('/')
-@app.route('/index')
+@app.route('/index', methods=['POST', 'GET'])
 def index():
-    print(upload_folder, file=sys.stderr)
-    return render_template('index.html')
+    form = SearchForm()
+
+    if form.validate_on_submit():
+        results = Search().get(form.field.data)
+
+        if results:
+            return redirect(url_for('list', results=form.field.data))
+
+        else:
+            flash('No match found.')
+
+    return render_template('index.html', form=form)
 
 @app.route('/upload', methods=['POST', 'GET'])
 def upload():
@@ -94,21 +104,6 @@ def upload():
             return redirect('/upload')
 
     return render_template('upload.html', form=form)
-
-@app.route('/search', methods=['GET', 'POST'])
-def search():
-    form = SearchForm()
-
-    if form.validate_on_submit():
-        results = Search().get(form.field.data)
-
-        if results:
-            return redirect(url_for('list', results=form.field.data))
-
-        else:
-            flash('No match found.')
-
-    return render_template('search.html', form=form)
 
 @app.route('/list', methods=['POST', 'GET'])
 def list():
