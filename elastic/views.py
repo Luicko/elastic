@@ -11,7 +11,7 @@ from flask.ext.login import current_user
 from werkzeug import secure_filename
 
 from . import url as orl
-from . import app, db, api, parsor, UPLOAD_FOLDER, es
+from . import app, db, upload_folder, es
 from .forms import AddFile, SearchForm
 
 import tika
@@ -55,7 +55,7 @@ class Search(Resource):
 @app.route('/')
 @app.route('/index')
 def index():
-    print(UPLOAD_FOLDER, file=sys.stderr)
+    print(upload_folder, file=sys.stderr)
     return render_template('index.html')
 
 @app.route('/upload', methods=['POST', 'GET'])
@@ -66,7 +66,7 @@ def upload():
         try:
             file = form.file.data
             filename = secure_filename(file.filename)
-            folder = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            folder = os.path.join(upload_folder, filename)
             file.save(folder)
             parsed = parser.from_file(folder)
 
@@ -131,6 +131,6 @@ def delete():
     file_id = request.form.get('id')
     file = Search().get(file_id)
     es.delete(index='files', doc_type='doc', id=file_id)
-    os.remove(os.path.join(app.config['UPLOAD_FOLDER'], file[0]['file_name']))
+    os.remove(os.path.join(upload_folder, file[0]['file_name']))
     flash('Delete success.')
     return redirect(url_for('index'))
