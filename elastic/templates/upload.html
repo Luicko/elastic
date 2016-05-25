@@ -1,35 +1,25 @@
-<!DOCTYPE html>
-<html>
-    <head>
-      <meta charset='utf-8'>
-      <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
-      <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-
-      {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul>
-          {% for message in messages %}
-            <li>{{ message }} </li>
-          {% endfor %}
-      </ul>
-    {% endif %}
-{% endwith %}
-
-    </head>
-    <body>
-      <form action="" method="post" enctype="multipart/form-data">
-        {{ form.hidden_tag() }}
-        <div>Title: {{ form.title }}</div>
-        {% for error in form.title.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}<br>
-        <div>File: {{ form.file }}</div>
-        <div>Description/Note: {{ form.note }}</div>
-
-        <input type="submit" value='Upload'/>
-      </form>
-      <a href="{{ url_for('index') }}">Index</a>
-    </body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+<div class="row">
+  <div class="page-header">
+    <h1>Upload</h1>
+  </div>
+  {{ pagedown.include_pagedown() }}
+  <form action="" method="post" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div><label class="control-label">Title: </label>{{ form.title(class='form-control') }}</div>
+    {% for error in form.title.errors %}
+      <span style="color: red;">[{{ error }}]</span>
+    {% endfor %}<br>
+    <label class="control-label">File: </label><br>
+    <label class="btn btn-primary" for="my-file-selector">
+      {{ form.file(id="my-file-selector", style="display:none;", onchange="$('#upload-file-info').html($(this).val());") }}
+          Browse..
+    </label>
+    <span class='label label-info' id="upload-file-info"></span>
+    <div><label class+"control-label"> Description/Note: </label>{{ form.note(class='form-control', only_input=True, rows=6, size=6) }}</div>
+    <div><label class+"control-label"> Preview: </label>{{ form.note(class='form-control', only_preview=True, rows=6, size=6) }}</div>
+    <input type="submit" value='Upload'/>
+  </form>
+{% endblock %}
