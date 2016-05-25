@@ -6,13 +6,13 @@
         <h1>Results</h1>
     </div>
     <table class="table table-hover table-condensed">
-    <tr>
-      <th>Creator</th>
-      <th>Title</th>
-      <th>Type</th>
-      <th>Note</th>
-    </tr>
-      {% for file in found %}
+      <tr>
+        <th>Creator</th>
+        <th>Title</th>
+        <th>Type</th>
+        <th>Note</th>
+      </tr>
+    {% for file in found %}
       <tr>
         <td>{{ file['creator'] }}</td>
         <td><a href="{{ url_for('show', results=file['id']) }}">{{ file['title'] }}</a></td>

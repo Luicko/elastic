@@ -8,7 +8,9 @@
     {% for doc in docs %}
         <div class="col-sm-6 col-md-4">
           <div class="thumbnail">
-            <img src="..." alt="...">
+            <button type="button" class="btn btn-default btn-lg">
+              <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
+            </button>
             <div class="caption">
               <h3>{{ doc['title'] }}</h3>
               <p>{{ doc['note'] }}</p>

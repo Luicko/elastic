@@ -11,9 +11,9 @@
         <div><label class='control-label'>Email:</label> {{ form.email(class='form-control') }}</div>
         <div><label class='control-label'>Password:</label> {{ form.password(class='form-control') }}</div>
         <div><label></label></div>
-        <div>{{ form.submit(class='btn btn-primary') }}</div>
-      </form>
-      <a href="{{ url_for('signup') }}">Sign Up</a>
+        <div>{{ form.submit(class='btn btn-primary') }}</div>  
+      </form><br>
+      <p>Don't have an account yet? <a href="{{ url_for('signup') }}">Sign Up!</a></p>
     </div>
   </div>
 </div>

@@ -106,13 +106,17 @@ def index():
     value = request.form.get('doc')
 
     if value:
-        results = Search().get(value)
+        if g.user.is_authenticated:
+            results = Search().get(value)
 
-        if results:
-            return redirect(url_for('list', results=value))
+            if results:
+                return redirect(url_for('list', results=value))
+
+            else:
+                flash('No match found.')
 
         else:
-            flash('No match found.')
+            return redirect(url_for('non_search'))
 
     return render_template('index.html')
 
@@ -228,3 +232,7 @@ def signin():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+@app.route('/non_search')
+def non_search():
+    return render_template('non_search.html')
