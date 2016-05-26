@@ -5,7 +5,7 @@ import sys
 import os
 
 from flask import (render_template, url_for, redirect, request, 
-    jsonify, flash, g, Markup)
+    jsonify, flash, g, Markup, send_from_directory)
 from flask_restful import Resource
 from flask.ext.login import (login_user, logout_user, current_user,
     login_required)
@@ -26,7 +26,14 @@ from tika import parser
 def before_request():
     g.user = current_user
 
+
 def types(extension):
+    """
+    Check of the file extension to allow the upload of the desired ones
+    :param extension: The string of the aplication/type recieve
+    :returns: The allowed :endpoint: in UPPERCASE :if: allowed
+
+    """
     allowed = ['pdf', 'text']
 
     for endpoint in allowed:
@@ -35,9 +42,34 @@ def types(extension):
 
     raise KeyError('File not allowed')
 
+
+class Doc(Resource):
+    """
+    Class bound with the method :get: to retrieve an specific Doc
+    """
+    def get(self, doc_id):
+        """
+        Method designed to retrive an specific Doc without searchin the while node
+        :param doc_id: The file id to get
+        :returns: dictionary
+        """
+        url = orl.es_base_url['file']+ g.user.email + '/' + doc_id
+        resp = requests.get(url)
+        data = resp.json()
+        doc = data['_source']
+        doc['id'] = data['_id']
+        return doc
+
+
 class DocList(Resource):
- 
+    """
+    Class bound with the method :func:`get` to retrieve all the Docs from one user
+    """
     def get(self):
+        """
+        Method designed to retrieve all the Docs from the node of an specific user
+        :retuns: list of dictionaries
+        """
         url = orl.es_base_url['file']+ g.user.email + '/_search'
         query = {
             "query": {
@@ -55,9 +87,19 @@ class DocList(Resource):
             docs.append(doc)
         return docs
 
+
 class Search(Resource):
+    """
+    Class bound with the method to search in the entire node of a user
+    for an specific doc
+    """
  
     def get(self, field):
+        """
+        Search the node for a match, highligh the result if needed
+        :paramr field: string to be match against the nodes
+        :returns: list of dictionaries
+        """
         url = orl.es_base_url['file']+ g.user.email + '/_search'
         query = {
             "query": {
@@ -120,8 +162,13 @@ def index():
 
     return render_template('index.html')
 
+
 @app.route('/upload', methods=['POST', 'GET'])
 def upload():
+    """
+    Uploads a file for to the user's folder and creates the 
+    new index for the user in the Elasticsearc Node
+    """
     form = AddFile()
 
     if form.validate_on_submit():
@@ -157,35 +204,51 @@ def upload():
 
     return render_template('upload.html', form=form)
 
+
 @app.route('/list', methods=['POST', 'GET'])
 def list():
+    """
+    Search for the list of possible results.
+    If just one match is found then directly shows it
+    """
     results = request.args['results']
     found = Search().get(results)
 
     if len(found) == 1:
-        return redirect(url_for('show', results=results))
+        return redirect(url_for('show', results=found[0]['id']))
 
     else:
         return render_template('list.html', found=found)
 
+
 @app.route('/show', methods=['POST', 'GET'])
 def show():
     results = request.args['results']
-    return render_template('show.html', file=Search().get(results)[0])
+    return render_template('show.html', file=Doc().get(results))
+
 
 @app.route('/delete', methods=['POST', 'GET'])
 def delete():
+    """
+    Deletes an index and the corresponding file in the user index and folder
+    respectively
+    """
     file_id = request.args['id']
-    file = Search().get(file_id)
+    file = Doc().get(file_id)
     es.delete(index='files', doc_type=g.user.email, id=file_id)
-    os.remove(os.path.join(upload_folder, g.user.email, file[0]['file_name']))
+    os.remove(os.path.join(upload_folder, g.user.email, file['file_name']))
     flash('Delete success.')
     return redirect(url_for('index'))
 
+
 @app.route('/all_docs')
 def all_docs():
+    """
+    :retuns: All the users documents
+    """
     docs = DocList().get()
     return render_template('all_docs.html', docs=docs)
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -228,11 +291,24 @@ def signin():
 
     return render_template('signin.html', form=form)
 
+
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('index'))
 
+
 @app.route('/non_search')
 def non_search():
+    """
+    Function created for user non authentificated wich try to do a search
+    """
     return render_template('non_search.html')
+
+
+@app.route('/download', methods=['POST', 'GET'])
+def download():
+    file_id = request.args['id']
+    file = Doc().get(file_id)
+    folder = os.path.join(upload_folder, g.user.email)
+    return send_from_directory(directory=folder, filename=file['file_name'])

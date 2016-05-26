@@ -17,6 +17,7 @@ app = Flask(__name__, instance_relative_config=True)
 app.config.from_object('elastic.settings')
 app.config.from_pyfile('settings.conf')
 
+
 upload_folder = (app.instance_path + '/files/')
 app.config['UPLOAD_FOLDER'] = upload_folder
 
@@ -40,7 +41,7 @@ def load_user(id):
     LoginManager callback to assign `current_user` proxy object.
 
     :param id: User ID
-    :returns: :class:`User`
+    :returns: :class:`User` filter by Email as Primary Key
     """
     x = models.Users.query.filter_by(id=id).first()
     return x

@@ -8,6 +8,9 @@ manager = Manager(app)
 
 @manager.command
 def clean():
+    """
+    Function created for testing, cleans the user from de Database
+    """
     from elastic import db, models
 
     u = models.Users.query.all()
