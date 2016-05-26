@@ -115,8 +115,10 @@ class Search(Resource):
                     "pre_tags" : ["<em class='highlight'>"],
                     "post_tags" : ["</em>"],
                 "fields" : {
-                    "body": {"type": "plain", "fragment_size" : 45, "number_of_fragments" : 3},
-                    "file_name": {"type": "plain", "fragment_size" : 30, "number_of_fragments" : 0},
+                    "body": {"type": "plain", "fragment_size" : 45,
+                    "number_of_fragments" : 3},
+                    "file_name": {"type": "plain", "fragment_size" : 30,
+                    "number_of_fragments" : 0},
                 },
             "size": 100
         }

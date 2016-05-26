@@ -15,7 +15,9 @@
     {% for file in found %}
       <tr>
         <td>{{ file['creator'] }}</td>
-        <td><a href="{{ url_for('show', results=file['id']) }}">{{ file['title'] }}</a></td>
+        <td>
+          <a href="{{ url_for('show', results=file['id']) }}">{{ file['title'] }}</a>
+        </td>
         <td>{{ file['file_type'] }}</td>
         <td>{{ file['note'] }}</td>
       </tr>
