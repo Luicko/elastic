@@ -16,7 +16,7 @@ MySQL-python==1.2.5
 SQLAlchemy==1.0.12
 Tempita==0.5.2
 WTForms==2.1
-Werkzeug==0.11.9
+Werkzeug==0.15.3
 Whoosh==2.7.4
 aniso8601==1.1.0
 argparse==1.2.1
